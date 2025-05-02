@@ -1,0 +1,1 @@
+# smithay-bar-example
