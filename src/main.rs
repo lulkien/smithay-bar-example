@@ -2,6 +2,8 @@ mod components;
 mod configuration;
 mod simbar;
 
+use std::time::Instant;
+
 use configuration::SIMBAR_CONFIG;
 use simbar::SimBar;
 use smithay_client_toolkit::{
@@ -39,6 +41,7 @@ fn main() {
         monitors: Vec::new(),
         pointer: None,
         exit: false,
+        last_draw_time: Instant::now(),
     };
 
     loop {

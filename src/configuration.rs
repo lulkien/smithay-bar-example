@@ -4,6 +4,7 @@ pub struct SimbarConfig {
     pub width: Option<u32>,
     pub height: u32,
     pub primary_output: Option<&'static str>,
+    pub frame_rate: u64,
 }
 
 pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
@@ -11,4 +12,5 @@ pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
     width: None,
     height: 40,
     primary_output: None,
+    frame_rate: 60,
 };
