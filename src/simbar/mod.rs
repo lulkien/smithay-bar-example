@@ -42,12 +42,6 @@ impl From<(u32, u32)> for DrawSize {
     }
 }
 
-impl DrawSize {
-    pub fn area(self) -> u32 {
-        self.height * self.width
-    }
-}
-
 #[allow(dead_code)]
 pub struct Monitor {
     pub output: WlOutput,
@@ -80,28 +74,16 @@ impl SimBar {
         {
             let buffer = monitor.buffer.as_ref().expect("Buffer should be created");
 
-            let _canvas = monitor.pool.raw_data_mut(
-                &monitor
-                    .buffer
-                    .as_ref()
-                    .expect("Buffer should be created.")
-                    .slot(),
-            );
+            let canvas = monitor.pool.raw_data_mut(&buffer.slot());
 
-            let _canvas = buffer.canvas(&mut monitor.pool).unwrap();
+            // let canvas = buffer
+            //     .canvas(&mut monitor.pool)
+            //     .expect("Failed to accquire canvas");
 
-            let canvas = monitor
-                .pool
-                .canvas(
-                    &monitor
-                        .buffer
-                        .as_ref()
-                        .expect("Buffer should be created.")
-                        .slot(),
-                )
-                .expect("Failed to accquire canvas");
-
-            println!("Canvas length: {}", canvas.len());
+            // let canvas = monitor
+            //     .pool
+            //     .canvas(buffer)
+            //     .expect("Failed to accquire canvas");
 
             // Draw a solid #aaaaaa rectangle
             canvas.chunks_exact_mut(4).for_each(|chunk| {
@@ -125,13 +107,6 @@ impl SimBar {
                 .layer_surface
                 .wl_surface()
                 .frame(qh, monitor.layer_surface.wl_surface().clone());
-
-            monitor
-                .buffer
-                .as_ref()
-                .expect("Buffer should be created")
-                .attach_to(monitor.layer_surface.wl_surface())
-                .expect("Failed to attach buffer");
 
             monitor.layer_surface.commit();
         }

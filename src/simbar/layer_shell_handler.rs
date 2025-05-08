@@ -34,26 +34,23 @@ impl LayerShellHandler for SimBar {
             if monitor.buffer.is_none() {
                 println!("Create buffer and make init draw call");
 
-                let (buffer, canvas) = monitor
+                let stride = monitor.draw_size.width * 4;
+
+                let (buffer, _) = monitor
                     .pool
                     .create_buffer(
                         monitor.draw_size.width as i32,
                         monitor.draw_size.height as i32,
-                        4,
+                        stride as i32,
                         Format::Argb8888,
                     )
                     .expect("Failed to create new buffer.");
 
-                monitor.buffer = Some(buffer);
+                buffer
+                    .attach_to(monitor.layer_surface.wl_surface())
+                    .expect("Failed to attach buffer");
 
-                println!("Create canvas with size: {}", canvas.len());
-                println!("Pool size: {}", monitor.pool.len());
-                println!(
-                    "should be: {} x {} x 4 = {}",
-                    monitor.draw_size.width,
-                    monitor.draw_size.height,
-                    monitor.draw_size.area() * 4
-                );
+                monitor.buffer = Some(buffer);
 
                 self.draw(qh, &surface);
             }
