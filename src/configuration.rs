@@ -12,5 +12,5 @@ pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
     width: None,
     height: 40,
     primary_output: None,
-    frame_rate: 60,
+    frame_rate: 20,
 };

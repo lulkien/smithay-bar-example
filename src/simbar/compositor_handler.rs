@@ -63,7 +63,8 @@ impl CompositorHandler for SimBar {
                 .layer_surface
                 .wl_surface()
                 .frame(qh, monitor.layer_surface.wl_surface().clone());
-            monitor.layer_surface.commit();
+
+            // monitor.layer_surface.commit();
         }
     }
 

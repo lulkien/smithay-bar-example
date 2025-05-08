@@ -17,13 +17,17 @@ use smithay_client_toolkit::{
         WaylandSurface,
         wlr_layer::{LayerShell, LayerSurface},
     },
-    shm::{Shm, slot::SlotPool},
+    shm::{
+        Shm,
+        slot::{Buffer, SlotPool},
+    },
 };
 use wayland_client::{
     QueueHandle,
-    protocol::{wl_output::WlOutput, wl_pointer::WlPointer, wl_shm::Format, wl_surface::WlSurface},
+    protocol::{wl_output::WlOutput, wl_pointer::WlPointer, wl_surface::WlSurface},
 };
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct DrawSize {
     pub width: u32,
     pub height: u32,
@@ -38,13 +42,19 @@ impl From<(u32, u32)> for DrawSize {
     }
 }
 
+impl DrawSize {
+    pub fn area(self) -> u32 {
+        self.height * self.width
+    }
+}
+
 #[allow(dead_code)]
 pub struct Monitor {
     pub output: WlOutput,
     pub layer_surface: LayerSurface,
     pub pool: SlotPool,
+    pub buffer: Option<Buffer>, // if buffer is None, then the monitor must be re-configurate
     pub draw_size: DrawSize,
-    pub configured: bool,
     pub is_primary: bool,
 }
 
@@ -68,15 +78,30 @@ impl SimBar {
             .iter_mut()
             .find(|monitor| monitor.layer_surface.wl_surface() == surface)
         {
-            println!("Draw");
-            let width = monitor.draw_size.width as i32;
-            let height = monitor.draw_size.height as i32;
-            let stride = width * 4;
+            let buffer = monitor.buffer.as_ref().expect("Buffer should be created");
 
-            let (buffer, canvas) = monitor
+            let _canvas = monitor.pool.raw_data_mut(
+                &monitor
+                    .buffer
+                    .as_ref()
+                    .expect("Buffer should be created.")
+                    .slot(),
+            );
+
+            let _canvas = buffer.canvas(&mut monitor.pool).unwrap();
+
+            let canvas = monitor
                 .pool
-                .create_buffer(width, height, stride, Format::Argb8888)
-                .expect("create buffer");
+                .canvas(
+                    &monitor
+                        .buffer
+                        .as_ref()
+                        .expect("Buffer should be created.")
+                        .slot(),
+                )
+                .expect("Failed to accquire canvas");
+
+            println!("Canvas length: {}", canvas.len());
 
             // Draw a solid #aaaaaa rectangle
             canvas.chunks_exact_mut(4).for_each(|chunk| {
@@ -89,21 +114,24 @@ impl SimBar {
                 *array = color.to_le_bytes();
             });
 
-            // Re-draw damaged part
-            monitor
-                .layer_surface
-                .wl_surface()
-                .damage_buffer(0, 0, width, height);
+            monitor.layer_surface.wl_surface().damage_buffer(
+                0,
+                0,
+                monitor.draw_size.width as i32,
+                monitor.draw_size.height as i32,
+            );
 
-            // request next frame
             monitor
                 .layer_surface
                 .wl_surface()
                 .frame(qh, monitor.layer_surface.wl_surface().clone());
 
-            buffer
+            monitor
+                .buffer
+                .as_ref()
+                .expect("Buffer should be created")
                 .attach_to(monitor.layer_surface.wl_surface())
-                .expect("buffer attach");
+                .expect("Failed to attach buffer");
 
             monitor.layer_surface.commit();
         }

@@ -5,7 +5,7 @@ use smithay_client_toolkit::{
         wlr_layer::{LayerShellHandler, LayerSurface, LayerSurfaceConfigure},
     },
 };
-use wayland_client::{Connection, QueueHandle};
+use wayland_client::{Connection, QueueHandle, protocol::wl_shm::Format};
 
 use super::SimBar;
 
@@ -29,13 +29,32 @@ impl LayerShellHandler for SimBar {
             .iter_mut()
             .find(|monitor| &monitor.layer_surface == layer)
         {
-            println!("configure layer");
-
             let surface = monitor.layer_surface.wl_surface().clone();
 
-            if !monitor.configured {
-                println!("Init draw");
-                monitor.configured = true;
+            if monitor.buffer.is_none() {
+                println!("Create buffer and make init draw call");
+
+                let (buffer, canvas) = monitor
+                    .pool
+                    .create_buffer(
+                        monitor.draw_size.width as i32,
+                        monitor.draw_size.height as i32,
+                        4,
+                        Format::Argb8888,
+                    )
+                    .expect("Failed to create new buffer.");
+
+                monitor.buffer = Some(buffer);
+
+                println!("Create canvas with size: {}", canvas.len());
+                println!("Pool size: {}", monitor.pool.len());
+                println!(
+                    "should be: {} x {} x 4 = {}",
+                    monitor.draw_size.width,
+                    monitor.draw_size.height,
+                    monitor.draw_size.area() * 4
+                );
+
                 self.draw(qh, &surface);
             }
         }

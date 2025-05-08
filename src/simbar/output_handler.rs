@@ -5,23 +5,21 @@ use smithay_client_toolkit::{
         WaylandSurface,
         wlr_layer::{Anchor, Layer},
     },
-    shm::slot::SlotPool,
+    shm::slot::{Buffer, SlotPool},
 };
 use wayland_client::{Connection, QueueHandle, protocol::wl_output::WlOutput};
 
+use super::SimBar;
 use crate::{configuration::SIMBAR_CONFIG, simbar::Monitor};
 
-use super::SimBar;
-
 delegate_output!(SimBar);
+
 impl OutputHandler for SimBar {
     fn output_state(&mut self) -> &mut OutputState {
         &mut self.output_state
     }
 
     fn new_output(&mut self, _conn: &Connection, qh: &QueueHandle<Self>, output: WlOutput) {
-        println!("new_output");
-
         if let Some(info) = self.output_state.info(&output) {
             println!(
                 "Create surface for monitor: {}",
@@ -45,6 +43,7 @@ impl OutputHandler for SimBar {
 
             let width = SIMBAR_CONFIG.width.unwrap_or(output_width);
             let height = SIMBAR_CONFIG.height;
+            let depth = 4;
 
             let is_primary = SIMBAR_CONFIG
                 .primary_output
@@ -57,16 +56,18 @@ impl OutputHandler for SimBar {
             layer_surface.set_exclusive_zone(height as i32);
             layer_surface.commit();
 
-            let pool = SlotPool::new((width * height * 4) as usize, &self.shm)
+            let pool = SlotPool::new((width * height * depth) as usize, &self.shm)
                 .expect("Failed to create pool");
+
+            println!("Create new monitor: {width} x {height}");
 
             self.monitors.push(Monitor {
                 output,
                 layer_surface,
                 pool,
                 draw_size: (width, height).into(),
-                configured: false,
                 is_primary,
+                buffer: None,
             });
         }
     }
@@ -84,19 +85,34 @@ impl OutputHandler for SimBar {
                     .logical_size
                     .map_or(SIMBAR_CONFIG.width_fallback, |(w, _)| w as u32);
 
+                let old_draw_size = monitor.draw_size;
+
                 let width = SIMBAR_CONFIG.width.unwrap_or(output_width);
                 let height = SIMBAR_CONFIG.height;
 
                 monitor.layer_surface.set_size(width, height);
                 monitor.layer_surface.set_exclusive_zone(height as i32);
-                monitor.pool = SlotPool::new((width * height * 4) as usize, &self.shm)
-                    .expect("Failed to create pool");
-                monitor.layer_surface.commit();
 
                 monitor.draw_size = (width, height).into();
 
-                // Updated output -> need to be reconfig
-                monitor.configured = false;
+                if old_draw_size != monitor.draw_size {
+                    // Remove old buffer anyway
+                    if monitor.buffer.is_some() {
+                        let old_buffer: Buffer =
+                            monitor.buffer.take().expect("Failed to take old buffer");
+
+                        // Destroy old buffer
+                        drop(old_buffer);
+                    }
+
+                    // Resize slot pool to match with new output size
+                    monitor
+                        .pool
+                        .resize((width * height * 4) as usize)
+                        .expect("Failed to create pool.");
+                }
+
+                monitor.layer_surface.commit();
             }
         }
     }
