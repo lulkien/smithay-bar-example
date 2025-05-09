@@ -50,6 +50,8 @@ impl LayerShellHandler for SimBar {
                     .attach_to(monitor.layer_surface.wl_surface())
                     .expect("Failed to attach buffer");
 
+                monitor.layer_surface.commit();
+
                 monitor.buffer = Some(buffer);
 
                 self.draw(qh, &surface);

@@ -72,20 +72,10 @@ impl SimBar {
             .iter_mut()
             .find(|monitor| monitor.layer_surface.wl_surface() == surface)
         {
-            let buffer = monitor.buffer.as_ref().expect("Buffer should be created");
+            let buffer = monitor.buffer.as_mut().expect("Buffer should be created");
 
             let canvas = monitor.pool.raw_data_mut(&buffer.slot());
 
-            // let canvas = buffer
-            //     .canvas(&mut monitor.pool)
-            //     .expect("Failed to accquire canvas");
-
-            // let canvas = monitor
-            //     .pool
-            //     .canvas(buffer)
-            //     .expect("Failed to accquire canvas");
-
-            // Draw a solid #aaaaaa rectangle
             canvas.chunks_exact_mut(4).for_each(|chunk| {
                 let a: u32 = 0xFF;
                 let r: u32 = 0xAA;
