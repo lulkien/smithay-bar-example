@@ -14,6 +14,8 @@ use wayland_client::{
 use super::SimBar;
 use crate::configuration::SIMBAR_CONFIG;
 
+const MIN_FRAME_TIME: Duration = Duration::from_millis(1000 / SIMBAR_CONFIG.frame_rate);
+
 delegate_compositor!(SimBar);
 
 impl CompositorHandler for SimBar {
@@ -46,9 +48,7 @@ impl CompositorHandler for SimBar {
     ) {
         let now = Instant::now();
 
-        let min_frame_time = Duration::from_nanos(1_000_000_000 / SIMBAR_CONFIG.frame_rate);
-
-        if now.duration_since(self.last_draw_time) >= min_frame_time {
+        if now.duration_since(self.last_draw_time) >= MIN_FRAME_TIME {
             self.draw(qh, surface);
             self.last_draw_time = now;
             return;
@@ -59,10 +59,15 @@ impl CompositorHandler for SimBar {
             .iter()
             .find(|monitor| monitor.layer_surface.wl_surface() == surface)
         {
+            if !monitor.is_primary {
+                return;
+            }
+
             monitor
                 .layer_surface
                 .wl_surface()
                 .frame(qh, monitor.layer_surface.wl_surface().clone());
+
             monitor.layer_surface.commit();
         }
     }
