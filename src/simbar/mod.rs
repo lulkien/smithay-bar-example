@@ -27,6 +27,8 @@ use wayland_client::{
     protocol::{wl_output::WlOutput, wl_pointer::WlPointer, wl_surface::WlSurface},
 };
 
+use crate::components::{CenterWidget, Label, Widgets};
+
 /// Represents the dimensions of a drawable surface in pixels.
 ///
 /// This struct is used to store the width and height of a surface, such as a monitor's
@@ -113,25 +115,74 @@ pub struct SimBar {
 }
 
 impl SimBar {
+    fn blend_pixels(fg: u32, bg: u32) -> u32 {
+        let fg_a = (fg >> 24) & 0xFF; // Foreground alpha (0-255)
+        let fg_r = (fg >> 16) & 0xFF;
+        let fg_g = (fg >> 8) & 0xFF;
+        let fg_b = fg & 0xFF;
+
+        let bg_r = (bg >> 16) & 0xFF;
+        let bg_g = (bg >> 8) & 0xFF;
+        let bg_b = bg & 0xFF;
+
+        let alpha = fg_a as f32 / 255.0;
+        let inv_alpha = 1.0 - alpha;
+
+        let r = (fg_r as f32 * alpha + bg_r as f32 * inv_alpha).round() as u32;
+        let g = (fg_g as f32 * alpha + bg_g as f32 * inv_alpha).round() as u32;
+        let b = (fg_b as f32 * alpha + bg_b as f32 * inv_alpha).round() as u32;
+
+        (0xFF << 24) | (r << 16) | (g << 8) | b
+    }
+
     pub fn draw(&mut self, qh: &QueueHandle<Self>, surface: &WlSurface) {
         if let Some(monitor) = self
             .monitors
             .iter_mut()
             .find(|monitor| monitor.layer_surface.wl_surface() == surface)
         {
-            let buffer = monitor.buffer.as_mut().expect("Buffer should be created");
+            let buffer: &mut Buffer = monitor.buffer.as_mut().expect("Buffer should be created");
 
-            let canvas = monitor.pool.raw_data_mut(&buffer.slot());
+            let canvas: &mut [u8] = monitor.pool.raw_data_mut(&buffer.slot());
 
-            canvas.chunks_exact_mut(4).for_each(|chunk| {
-                let a: u32 = 0xFF;
-                let r: u32 = 0x11;
-                let g: u32 = 0x11;
-                let b: u32 = 0x1B;
-                let color = (a << 24) + (r << 16) + (g << 8) + b;
-                let array: &mut [u8; 4] = chunk.try_into().unwrap();
-                *array = color.to_le_bytes();
-            });
+            let hello: Label = Label {
+                text: "Hello".to_owned(),
+                fg_color: "#FF0000".to_owned(),
+                bg_color: None,
+                font_size: 25,
+            };
+            let world: Label = Label {
+                text: "World".to_owned(),
+                fg_color: "#FF0000".to_owned(),
+                bg_color: None,
+                font_size: 25,
+            };
+
+            let center = CenterWidget {
+                components: vec![hello, world],
+                height: monitor.draw_size.height,
+            };
+
+            let data = center.render(monitor.draw_size);
+
+            let bg_color: u32 = 0xFF11111B;
+
+            canvas
+                .chunks_exact_mut(4)
+                .enumerate()
+                .for_each(|(i, chunk)| {
+                    let pixel = if i < data.len() {
+                        match data[i] {
+                            Some(fg_pixel) => Self::blend_pixels(fg_pixel, bg_color),
+                            None => bg_color,
+                        }
+                    } else {
+                        bg_color
+                    };
+
+                    let array: &mut [u8; 4] = chunk.try_into().unwrap();
+                    *array = pixel.to_le_bytes();
+                });
 
             monitor.layer_surface.wl_surface().damage_buffer(
                 0,

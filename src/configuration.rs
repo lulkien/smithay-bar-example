@@ -14,3 +14,17 @@ pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
     primary_output: None,
     frame_rate: 60,
 };
+
+use std::sync::OnceLock;
+
+use rusttype::Font;
+
+static GLOBAL_FONT: OnceLock<Font<'static>> = OnceLock::new();
+
+#[allow(unused)]
+pub fn global_font() -> &'static Font<'static> {
+    GLOBAL_FONT.get_or_init(|| {
+        let font_data = include_bytes!("../resources/fonts/CodeNewRomanNerdFontMono-Regular.otf");
+        Font::try_from_bytes(font_data).expect("Failed to parse font")
+    })
+}
