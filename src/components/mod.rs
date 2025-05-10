@@ -3,12 +3,15 @@ use std::sync::{OnceLock, RwLock};
 use crate::simbar::DrawSize;
 
 mod center_widget;
+mod colors;
 mod label;
 mod left_widgets;
 mod padding;
 mod right_widgets;
 
 pub use center_widget::CenterWidgets;
+#[allow(unused)]
+pub use colors::{ArgbColor, RgbColor};
 pub use label::Label;
 pub use left_widgets::LeftWidgets;
 pub use padding::Padding;

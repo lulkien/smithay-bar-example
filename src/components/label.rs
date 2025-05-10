@@ -2,18 +2,27 @@ use rusttype::{Scale, point};
 
 use crate::configuration::global_font;
 
-use super::{BoundingBox, Component};
+use super::{
+    BoundingBox, Component,
+    colors::{ArgbColor, RgbColor},
+};
 
 #[allow(unused)]
 pub struct Label {
     pub text: String,
-    pub fg_color: String,
-    pub bg_color: Option<String>,
+    pub fg_color: RgbColor,
+    pub bg_color: Option<RgbColor>,
     pub font_size: u32,
 }
 
+#[allow(unused)]
+impl Label {
+    fn update(&mut self, text: &str) {
+        self.text = text.to_owned();
+    }
+}
+
 impl Component for Label {
-    #[allow(unused, unused_mut)]
     fn render(&self) -> (BoundingBox, Vec<Option<u32>>) {
         let scale = Scale::uniform(self.font_size as f32);
         let v_metrics = global_font().v_metrics(scale);
@@ -34,9 +43,7 @@ impl Component for Label {
 
         let mut buffer: Vec<Option<u32>> = vec![None; width * height];
 
-        let color_rgb =
-            u32::from_str_radix(self.fg_color.trim_start_matches('#'), 16).unwrap_or(0x000000); // Default to black if parsing fails
-        let color_argb = (0xFF << 24) | (color_rgb & 0xFFFFFF); // Add full alpha in ARGB format
+        let color_argb: u32 = ArgbColor::from(self.fg_color).into();
 
         for glyph in glyphs {
             if let Some(bb) = glyph.pixel_bounding_box() {

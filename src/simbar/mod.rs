@@ -27,7 +27,10 @@ use wayland_client::{
     protocol::{wl_output::WlOutput, wl_pointer::WlPointer, wl_surface::WlSurface},
 };
 
-use crate::components::{CenterWidgets, Label, Padding, Widgets};
+use crate::{
+    components::{CenterWidgets, Label, Padding, RgbColor, Widgets},
+    configuration::THEME_CONFIG,
+};
 
 /// Represents the dimensions of a drawable surface in pixels.
 ///
@@ -147,14 +150,14 @@ impl SimBar {
 
             let hello: Label = Label {
                 text: "Hello".to_owned(),
-                fg_color: "#FF0000".to_owned(),
+                fg_color: RgbColor::new(0xFF, 0xFF, 0xFF),
                 bg_color: None,
                 font_size: 25,
             };
             let pad = Padding(20);
             let world: Label = Label {
                 text: "World".to_owned(),
-                fg_color: "#FF0000".to_owned(),
+                fg_color: RgbColor::new(0xFF, 0x00, 0xFF),
                 bg_color: None,
                 font_size: 25,
             };
@@ -166,7 +169,7 @@ impl SimBar {
 
             let data = center.render(monitor.draw_size);
 
-            let bg_color: u32 = 0xFF11111B;
+            let bg_color: u32 = THEME_CONFIG.background_color.into();
 
             canvas
                 .chunks_exact_mut(4)
