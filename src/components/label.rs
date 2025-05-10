@@ -14,7 +14,7 @@ pub struct Label {
 
 impl Component for Label {
     #[allow(unused, unused_mut)]
-    fn render(self) -> (BoundingBox, Vec<Option<u32>>) {
+    fn render(&self) -> (BoundingBox, Vec<Option<u32>>) {
         let scale = Scale::uniform(self.font_size as f32);
         let v_metrics = global_font().v_metrics(scale);
         let glyphs: Vec<_> = global_font()

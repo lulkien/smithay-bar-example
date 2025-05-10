@@ -1,10 +1,16 @@
 use super::{BoundingBox, Component};
 
 #[allow(unused)]
-pub struct Padding(u32);
+pub struct Padding(pub u32);
 
 impl Component for Padding {
-    fn render(self) -> (BoundingBox, Vec<Option<u32>>) {
-        todo!()
+    fn render(&self) -> (BoundingBox, Vec<Option<u32>>) {
+        (
+            BoundingBox {
+                width: self.0,
+                height: 0,
+            },
+            vec![None; self.0 as usize],
+        )
     }
 }

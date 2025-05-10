@@ -27,7 +27,7 @@ use wayland_client::{
     protocol::{wl_output::WlOutput, wl_pointer::WlPointer, wl_surface::WlSurface},
 };
 
-use crate::components::{CenterWidget, Label, Widgets};
+use crate::components::{CenterWidgets, Label, Padding, Widgets};
 
 /// Represents the dimensions of a drawable surface in pixels.
 ///
@@ -151,6 +151,7 @@ impl SimBar {
                 bg_color: None,
                 font_size: 25,
             };
+            let pad = Padding(20);
             let world: Label = Label {
                 text: "World".to_owned(),
                 fg_color: "#FF0000".to_owned(),
@@ -158,8 +159,8 @@ impl SimBar {
                 font_size: 25,
             };
 
-            let center = CenterWidget {
-                components: vec![hello, world],
+            let center = CenterWidgets {
+                components: vec![Box::new(hello), Box::new(pad), Box::new(world)],
                 height: monitor.draw_size.height,
             };
 

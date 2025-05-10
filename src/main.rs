@@ -1,5 +1,6 @@
 mod components;
 mod configuration;
+mod layout;
 mod simbar;
 
 use std::time::Instant;
