@@ -45,6 +45,18 @@ impl ArgbColor {
         }
     }
 
+    pub fn set_rgb(mut self, color: RgbColor) -> ArgbColor {
+        self.red = color.red;
+        self.green = color.green;
+        self.blue = color.blue;
+        self
+    }
+
+    pub fn set_alpha(mut self, alpha: f32) -> ArgbColor {
+        self.alpha = alpha;
+        self
+    }
+
     pub fn blend_with_background(self, background: ArgbColor) -> Self {
         let alpha = self.alpha + background.alpha * (1.0 - self.alpha);
         if alpha <= 0.0 {

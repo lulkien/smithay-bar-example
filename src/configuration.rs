@@ -27,7 +27,7 @@ pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
 };
 
 pub const THEME_CONFIG: ThemeConfig = ThemeConfig {
-    background_color: ArgbColor::new(1.0, 0x11, 0x11, 0x18),
+    background_color: ArgbColor::new(0.6, 0x11, 0x11, 0x18),
 };
 
 static GLOBAL_FONT: OnceLock<Font<'static>> = OnceLock::new();

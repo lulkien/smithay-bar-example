@@ -1,6 +1,6 @@
 use crate::simbar::DrawSize;
 
-use super::{Component, Widgets};
+use super::{ArgbColor, Component, Widgets};
 
 #[allow(unused)]
 pub struct CenterWidgets {
@@ -10,7 +10,7 @@ pub struct CenterWidgets {
 
 #[allow(unused)]
 impl Widgets for CenterWidgets {
-    fn render(&self, area: DrawSize) -> Vec<Option<u32>> {
+    fn render(&self, area: DrawSize) -> Vec<Option<ArgbColor>> {
         let mut buffer = vec![None; (area.width * area.height) as usize];
 
         if self.components.is_empty() {

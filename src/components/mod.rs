@@ -25,12 +25,12 @@ pub struct BoundingBox {
 
 #[allow(unused)]
 pub trait Component {
-    fn render(&self) -> (BoundingBox, Vec<Option<u32>>);
+    fn render(&self) -> (BoundingBox, Vec<Option<ArgbColor>>);
 }
 
 #[allow(unused)]
 pub trait Widgets {
-    fn render(&self, area: DrawSize) -> Vec<Option<u32>>;
+    fn render(&self, area: DrawSize) -> Vec<Option<ArgbColor>>;
 }
 
 #[allow(unused)]
