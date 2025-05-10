@@ -1,6 +1,6 @@
-use crate::simbar::DrawSize;
+use crate::{components::Component, simbar::DrawSize};
 
-use super::{Component, Widgets};
+use super::{ArgbColor, Widgets};
 
 #[allow(unused)]
 pub struct LeftWidgets {
@@ -10,7 +10,7 @@ pub struct LeftWidgets {
 
 #[allow(unused)]
 impl Widgets for LeftWidgets {
-    fn render(&self, area: DrawSize) -> Vec<Option<u32>> {
+    fn render(&self, area: DrawSize) -> Vec<Option<ArgbColor>> {
         todo!()
     }
 }

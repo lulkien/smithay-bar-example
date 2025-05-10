@@ -23,7 +23,7 @@ impl Label {
 }
 
 impl Component for Label {
-    fn render(&self) -> (BoundingBox, Vec<Option<u32>>) {
+    fn render(&self) -> (BoundingBox, Vec<Option<ArgbColor>>) {
         let scale = Scale::uniform(self.font_size as f32);
         let v_metrics = global_font().v_metrics(scale);
         let glyphs: Vec<_> = global_font()
@@ -41,20 +41,19 @@ impl Component for Label {
             .ceil()
             .max(1.0) as usize;
 
-        let mut buffer: Vec<Option<u32>> = vec![None; width * height];
-
-        let color_argb: u32 = ArgbColor::from(self.fg_color).into();
+        let mut buffer: Vec<Option<ArgbColor>> = vec![None; width * height];
 
         for glyph in glyphs {
             if let Some(bb) = glyph.pixel_bounding_box() {
-                glyph.draw(|x, y, v| {
+                glyph.draw(|x, y, alpha| {
                     let x = x as i32 + bb.min.x;
                     let y = y as i32 + bb.min.y;
                     if x >= 0 && x < width as i32 && y >= 0 && y < height as i32 {
                         let idx = (y as usize * width + x as usize) as usize;
-                        if v > 0.0 {
-                            let alpha = (v * 255.0) as u32;
-                            let pixel = (alpha << 24) | (color_argb & 0x00FFFFFF);
+                        if alpha > 0.0 {
+                            let pixel =
+                                ArgbColor::default().set_rgb(self.fg_color).set_alpha(alpha);
+
                             buffer[idx] = Some(pixel);
                         }
                     }

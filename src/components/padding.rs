@@ -1,10 +1,10 @@
-use super::{BoundingBox, Component};
+use super::{ArgbColor, BoundingBox, Component};
 
 #[allow(unused)]
 pub struct Padding(pub u32);
 
 impl Component for Padding {
-    fn render(&self) -> (BoundingBox, Vec<Option<u32>>) {
+    fn render(&self) -> (BoundingBox, Vec<Option<ArgbColor>>) {
         (
             BoundingBox {
                 width: self.0,

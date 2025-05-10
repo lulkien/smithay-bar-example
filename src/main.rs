@@ -2,8 +2,7 @@ mod components;
 mod configuration;
 mod layout;
 mod simbar;
-
-use std::time::Instant;
+mod widgets;
 
 use configuration::SIMBAR_CONFIG;
 use simbar::SimBar;
@@ -42,7 +41,7 @@ fn main() {
         monitors: Vec::new(),
         pointer: None,
         exit: false,
-        last_draw_time: Instant::now(),
+        last_frame_time: 0,
     };
 
     loop {

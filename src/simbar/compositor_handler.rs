@@ -1,5 +1,3 @@
-use std::time::{Duration, Instant};
-
 use smithay_client_toolkit::{
     compositor::CompositorHandler, delegate_compositor, shell::WaylandSurface,
 };
@@ -14,7 +12,7 @@ use wayland_client::{
 use super::SimBar;
 use crate::configuration::SIMBAR_CONFIG;
 
-const MIN_FRAME_TIME: Duration = Duration::from_millis(1000 / SIMBAR_CONFIG.frame_rate);
+const MIN_FRAME_TIME_MS: u32 = 1_000 / SIMBAR_CONFIG.frame_rate;
 
 delegate_compositor!(SimBar);
 
@@ -44,30 +42,27 @@ impl CompositorHandler for SimBar {
         _conn: &Connection,
         qh: &QueueHandle<Self>,
         surface: &WlSurface,
-        _time: u32,
+        time: u32,
     ) {
-        let now = Instant::now();
+        surface.frame(qh, surface.clone());
 
-        if now.duration_since(self.last_draw_time) >= MIN_FRAME_TIME {
+        let allow_draw = self
+            .monitors
+            .iter()
+            .find(|m| m.layer_surface.wl_surface() == surface)
+            .map(|m| m.is_primary)
+            .unwrap_or(false);
+
+        if allow_draw && time.wrapping_sub(self.last_frame_time) >= MIN_FRAME_TIME_MS {
             self.draw(qh, surface);
-            self.last_draw_time = now;
-            return;
+            self.last_frame_time = time;
         }
 
         if let Some(monitor) = self
             .monitors
-            .iter()
-            .find(|monitor| monitor.layer_surface.wl_surface() == surface)
+            .iter_mut()
+            .find(|m| m.layer_surface.wl_surface() == surface)
         {
-            if !monitor.is_primary {
-                return;
-            }
-
-            monitor
-                .layer_surface
-                .wl_surface()
-                .frame(qh, monitor.layer_surface.wl_surface().clone());
-
             monitor.layer_surface.commit();
         }
     }

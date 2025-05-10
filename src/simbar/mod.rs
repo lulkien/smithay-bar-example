@@ -6,8 +6,6 @@ mod registry_handler;
 mod seat_handler;
 mod shm_handler;
 
-use std::time::Instant;
-
 use smithay_client_toolkit::{
     compositor::CompositorState,
     output::OutputState,
@@ -28,8 +26,9 @@ use wayland_client::{
 };
 
 use crate::{
-    components::{CenterWidgets, Label, Padding, RgbColor, Widgets},
+    components::{Label, Padding, RgbColor},
     configuration::THEME_CONFIG,
+    widgets::{CenterWidgets, Widgets},
 };
 
 /// Represents the dimensions of a drawable surface in pixels.
@@ -114,30 +113,10 @@ pub struct SimBar {
     /// Whether the client should exit.
     pub exit: bool,
     /// The timestamp of the last rendered frame, used for frame rate capping.
-    pub last_draw_time: Instant,
+    pub last_frame_time: u32,
 }
 
 impl SimBar {
-    fn blend_pixels(fg: u32, bg: u32) -> u32 {
-        let fg_a = (fg >> 24) & 0xFF; // Foreground alpha (0-255)
-        let fg_r = (fg >> 16) & 0xFF;
-        let fg_g = (fg >> 8) & 0xFF;
-        let fg_b = fg & 0xFF;
-
-        let bg_r = (bg >> 16) & 0xFF;
-        let bg_g = (bg >> 8) & 0xFF;
-        let bg_b = bg & 0xFF;
-
-        let alpha = fg_a as f32 / 255.0;
-        let inv_alpha = 1.0 - alpha;
-
-        let r = (fg_r as f32 * alpha + bg_r as f32 * inv_alpha).round() as u32;
-        let g = (fg_g as f32 * alpha + bg_g as f32 * inv_alpha).round() as u32;
-        let b = (fg_b as f32 * alpha + bg_b as f32 * inv_alpha).round() as u32;
-
-        (0xFF << 24) | (r << 16) | (g << 8) | b
-    }
-
     pub fn draw(&mut self, qh: &QueueHandle<Self>, surface: &WlSurface) {
         if let Some(monitor) = self
             .monitors
@@ -169,23 +148,23 @@ impl SimBar {
 
             let data = center.render(monitor.draw_size);
 
-            let bg_color: u32 = THEME_CONFIG.background_color.into();
-
             canvas
                 .chunks_exact_mut(4)
                 .enumerate()
                 .for_each(|(i, chunk)| {
                     let pixel = if i < data.len() {
                         match data[i] {
-                            Some(fg_pixel) => Self::blend_pixels(fg_pixel, bg_color),
-                            None => bg_color,
+                            Some(fg_pixel) => {
+                                fg_pixel.blend_with_background(THEME_CONFIG.background_color)
+                            }
+                            None => THEME_CONFIG.background_color,
                         }
                     } else {
-                        bg_color
+                        THEME_CONFIG.background_color
                     };
 
                     let array: &mut [u8; 4] = chunk.try_into().unwrap();
-                    *array = pixel.to_le_bytes();
+                    *array = u32::from(pixel).to_le_bytes();
                 });
 
             monitor.layer_surface.wl_surface().damage_buffer(
