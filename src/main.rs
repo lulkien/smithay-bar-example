@@ -2,6 +2,7 @@ mod components;
 mod configuration;
 mod layout;
 mod simbar;
+mod widgets;
 
 use std::time::Instant;
 

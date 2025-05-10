@@ -1,6 +1,6 @@
-use crate::simbar::DrawSize;
+use crate::{components::Component, simbar::DrawSize};
 
-use super::{ArgbColor, Component, Widgets};
+use super::{ArgbColor, Widgets};
 
 #[allow(unused)]
 pub struct CenterWidgets {

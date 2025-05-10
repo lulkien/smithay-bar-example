@@ -28,8 +28,9 @@ use wayland_client::{
 };
 
 use crate::{
-    components::{CenterWidgets, Label, Padding, RgbColor, Widgets},
+    components::{Label, Padding, RgbColor},
     configuration::THEME_CONFIG,
+    widgets::{CenterWidgets, Widgets},
 };
 
 /// Represents the dimensions of a drawable surface in pixels.
