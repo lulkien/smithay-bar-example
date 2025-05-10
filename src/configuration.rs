@@ -9,7 +9,7 @@ pub struct SimbarConfig {
     pub width: Option<u32>,
     pub height: u32,
     pub primary_output: Option<&'static str>,
-    pub frame_rate: u64,
+    pub frame_rate: u32,
 }
 
 pub struct ThemeConfig {
@@ -23,7 +23,7 @@ pub const SIMBAR_CONFIG: SimbarConfig = SimbarConfig {
     width: None,
     height: 40,
     primary_output: None,
-    frame_rate: 60,
+    frame_rate: 24,
 };
 
 pub const THEME_CONFIG: ThemeConfig = ThemeConfig {

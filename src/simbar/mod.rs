@@ -6,8 +6,6 @@ mod registry_handler;
 mod seat_handler;
 mod shm_handler;
 
-use std::time::Instant;
-
 use smithay_client_toolkit::{
     compositor::CompositorState,
     output::OutputState,
@@ -115,7 +113,7 @@ pub struct SimBar {
     /// Whether the client should exit.
     pub exit: bool,
     /// The timestamp of the last rendered frame, used for frame rate capping.
-    pub last_draw_time: Instant,
+    pub last_frame_time: u32,
 }
 
 impl SimBar {
